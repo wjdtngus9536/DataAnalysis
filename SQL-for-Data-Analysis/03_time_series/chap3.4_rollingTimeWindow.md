@@ -1,4 +1,4 @@
-# 3.4 시간 윈도우 롤링
+## 3.4 시간 윈도우 롤링
 
 시계열 데이터에는 흔히 노이즈가 있어, 의미 있는 패턴을 찾는 데 방해가 됩니다. 앞 절에서는 월간, 연간 데이터 집계 등 데이터에서 노이즈를 제거해 결과 데이터를 부드럽고 이해하기 쉽게 만드는 방법을 배웠습니다. 이 절에서는 또 `다른 노이즈 제거 방법`으로, 여러 구간을 설정해 트렌드를 분석하는 `시간 윈도우 롤링`을 알아봅니다. 시간 윈도우 롤링은 이동 계산 moving calculation 이라고도 합니다. 이동 계산 중에서도 이동 평균이 가장 흔히 쓰이지만 SQL을 활용하면 평균이 아니라 어떤 집계 함수든 적용할 수 있습니다. 시간 윈도우 롤링은 주가 분석, 거시경제 트렌드, 시청률 조사 등 다양한 분석에 두루 사용됩니다. 몇몇 시간 윈도우 롤링 방법은
 - last twelve months(LTM)
@@ -19,3 +19,36 @@
 
 4장에서 사용자 그룹 코호트 분석을 자세히 다루면서 시간에 따른 인구통계별 재방문 및 소비 차이 등을 알아봅니다. 분할은 윈도우 함수와 **PARTITION BY** 절 혹은 그룹화를 통해 수행합니다.
 
+
+### 3.4.1 시간 윈도우 롤링 계산
+미국 소매업 매출 데이터셋을 활용해 시간 윈도우 롤링을 직접 계산  
+먼저 데이터셋의 모든 시간 윈도우 구간에 레코드가 제대로 저장돼 있을 때 사용하는 간단한 계산을 알아본 뒤, 이어서 몇몇 시간 윈도우 구간에 데이터가 빠져 있을 때 사용하는 방법도 알아봅니다.
+
+시간 윈도우 롤링을 계산하는 방법은 크게 두 가지 입니다.
+하나는 self-JOIN을 사용하는 방법으로 어떤 데이터베이스에서든 사용할 수 있으며, 다른 하나는 윈도우 함수를 사용하는 방법인데 일부 데이터베이스에서는 지원되지 않습니다.  
+
+예제 데이터가 월 단위로 집계돼 있으므로 12개월을 한 윈도우 구간으로 설정해 1년 매출 단위로 롤링해봅시다. 그리고 12개월 기준으로 이동 평균의 매출을 계산합니다. 우선 쿼리를 어떻게 작성할지 생각해봅시다. 다음 쿼리에서 별칭 `a 테이블은 닻(anchor)역할을 수행해 윈도우의 기준이 되는 날짜 (월)를 가져옵니다.` 데이터에서 시작 날짜는 2019년 12월입니다. 테이블 별칭 `b에서는 이동 평균을 계산할 월 매출 12개를 가져옵니다.` 여기서는 의도적으로 카티션 join을 수행하기 위해 아래 표현식을 사용합니다.
+```sql
+b.sales_month between a.sales_month - interval '11 months' and a.sales_month
+```
+
+```sql
+SELECT
+	a.sales_month, a.sales,
+	b.sales_month as rolling_sales_month,
+	b.sales as rolling_sales
+FROM 
+	retail_sales a
+JOIN retail_sales b
+	on a.kind_of_business = b.kind_of_business
+	and b.sales_month between a.sales_month - interval '11 months'
+	and b.sales_month
+	and b.kind_of_business = 'Women''s clothing stores'
+WHERE a.kind_of_business = 'Women''s clothing stores'
+	and a.sales_month = '2019-12-01'
+;
+```
+
+a 테이블의 sales_month와 sales는 12개월로 구성된 윈도우의 모든 행에서 반복 사용됐습니디ㅏ.
+
+> Warning_ BETWEEN 절을 사용할 때는 명시된 두 날짜도 함께 포함돼 반환된다는 점에 주의합니다. 종종 위 코드에서 interval '11 months'가 아니라 interval '12 months'를 사용하는 실수를 합니다. 헷갈린다면 쿼리 결과를 잘 살펴보고 윈도우별 구간 개수가 원하는 수만큼인지 확인합시다.
