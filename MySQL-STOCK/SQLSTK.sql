@@ -111,3 +111,76 @@ select
 from stock T1
 where T1.STK_NM in ('삼성전자', '서울반도체')
 ;
+
+
+
+-- 5.09 등락률
+select t1.stk_cd, t1.stk_nm, t2.dt, t2.c_prc, t2.chg_rt
+from 
+	stock t1
+	inner join history_dt t2
+		on (t2.stk_cd = t1.stk_cd)
+where t1.stk_nm = '삼성전자'
+and t2.dt = str_to_date('20190109', '%Y%m%d')
+;
+
+-- 등락률 계산
+select t1.stk_cd, t1.stk_nm,
+	round((t2.c_prc - t3.c_prc) / t3.c_prc * 100, 2) CHG_RT
+from stock t1
+	inner join history_dt t2
+		on (t2.stk_cd = t1.stk_cd)
+	inner join history_dt t3
+		on (t3.stk_cd = t1.stk_cd)
+where t1.stk_nm = '삼성전자'
+and t2.dt = str_to_date('20190109', '%Y%m%d')
+and t3.dt = str_to_date('20190108', '%Y%m%d')
+;
+
+-- 2020년 3월 19일에 가장 많이 빠진 종목을 차례대로 조회
+select t1.stk_cd, t1.stk_nm,
+	t2.dt, t2.c_prc,
+    t3.dt, t3.c_prc,
+    round((t2.c_prc - t3.c_prc) / t3.c_prc * 100, 2) CHG_RT
+from stock t1
+	inner join history_dt t2
+		on t2.stk_cd = t1.stk_cd
+	inner join history_dt t3
+		on (t3.stk_cd = t1.stk_cd)
+where 	t2.dt = str_to_date('20190319', '%Y%m%d')
+and		t3.dt = str_to_date('20190102', '%Y%m%d')
+order by chg_rt asc;
+
+select t1.stk_cd, t1.stk_nm,
+    t2.dt, t2.c_prc,
+    t3.dt, t3.c_prc,
+    round((t2.c_prc - t3.c_prc) / t3.c_prc * 100, 2) CHG_RT
+from stock t1
+    inner join history_dt t2
+        on (t2.stk_cd = t1.stk_cd)
+    inner join history_dt t3
+        on t3.stk_cd = t1.stk_cd
+where   t2.dt = str_to_date('20201230', '%Y%m%d')
+and     t3.dt = str_to_date('20200319', '%Y%m%d')
+order by CHG_RT desc;
+
+
+-- 매도 시점으 history_dt(t_sell)를 한 번 더 조인해 매도한 일자의 종가를 가져와 수익률을 구할 수 있다.
+
+select t1.stk_cd, t1.stk_nm,
+    t_buy.dt BUY_DT, round(t_buy.c_prc, 1) BUY_PRC, round(t_buy.c_prc * 10, 1) BUY_AMT,
+    t_sell.dt SELL_DT, round(t_sell.c_prc, 1) SELL_PRC, round(t_sell.c_prc * 10, 1) SELL_AMT,
+
+    round((t_sell.c_prc - t_buy.c_prc) / t_buy.c_prc * 100, 2) 수익률,
+	ROUND((T_SELL.C_PRC * 10) - (T_BUY.C_PRC * 10),1) 수익금
+    -- 수익금, 이거 안되는 이유
+--     SELL_AMT - BUY_AMT 수익금
+from stock t1
+    inner join history_dt t_buy
+        on t_buy.stk_cd = t1.stk_cd
+    inner join history_dt t_sell
+        on t_sell.stk_cd = t1.stk_cd
+where t1.stk_nm in ('삼성전자','카카오','LG화학')
+and t_buy.dt = str_to_date('20190102', '%Y%m%d')
+and t_sell.dt = str_to_date('20191227', '%Y%m%d')
+order by 수익금 desc;

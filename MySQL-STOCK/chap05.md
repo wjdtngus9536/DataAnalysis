@@ -72,3 +72,87 @@ where T1.STK_NM in ('삼성전자', '서울반도체')
 괄호를 사용해 SQL 안에 또 다른 SQL을 추가하는 것이 바로 서브쿼리다. 그중에서도 SELECT절에 사용한 서브쿼리를 'SELECT절 서브쿼리' 또는 '스칼라(Scalar) 서브쿼리'라고 한다.  
 
 스칼라(Scalar)는 하나의 수치만으로 표시되는 단일 값(One-Row, One-Column)을 뜻한다. 그러므로 `SELECT절 서브쿼리는 단 하나의 값만을 리턴 하도록 작성`해야 한다.
+
+
+### 9) 등락률
+
+#### 5.09 등락률
+
+- 일 등락률 = (오늘 종가 - 어제 종가) / 어제종가 * 100
+
+일 등락률은 history_dt(일별주가) 테이블의 chg_rt(등락률) 컬럼에서 이미 관리 중.  
+
+```sql
+-- 2020년 3월 19일에 가장 많이 빠진 종목을 차례대로 조회
+select t1.stk_cd, t1.stk_nm,
+	t2.dt, t2.c_prc,
+    t3.dt, t3.c_prc,
+    round((t2.c_prc - t3.c_prc) / t3.c_prc * 100, 2) CHG_RT
+from stock t1
+	inner join history_dt t2
+		on (t2.stk_cd = t1.stk_cd)
+	inner join history_dt t3
+		on (t3.stk_cd = t1.stk_cd)
+where 	t2.dt = str_to_date('20190319', '%Y%m%d')
+and		t3.dt = str_to_date('20190102', '%Y%m%d')
+order by chg_rt asc;
+```
+
+```sql
+-- 2020년 3월 19일 대비 2020년 마지막 주식 거래일자에 가장 많이 오른 종목 내림차순
+select t1.stk_cd, t1.stk_nm,
+    t2.dt, t2.c_prc,
+    t3.dt, t3.c_prc,
+    round((t2.c_prc - t3.c_prc) / t3.c_prc * 100, 2) CHG_RT
+from stock t1
+    inner join history_dt t2
+        on (t2.stk_cd = t1.stk_cd)
+    inner join history_dt t3
+        on t3.stk_cd = t1.stk_cd
+where   t2.dt = str_to_date('20201230', '%Y%m%d')
+and     t3.dt = str_to_date('20200319', '%Y%m%d')
+order by CHG_RT desc;
+```
+
+
+#### 5.09.2 수익률 구하기
+수익률 시뮬레이션 하는 방법
+
+특정 기간 등락률 = 수익률
+- 수익률 = (sell 종가 - buy 종가) / buy 종가 * 100
+
+> Q. 2019년 1월 2일에 삼성전자, 카카오, LG화학을 10주씩 매수해서 12월 27일에 매도했다면 누가 가장 수익률이 높을까?
+
+
+```sql
+-- 20190102에 10주씩 매수했다고 가정하는 SQL
+select t1.stk_cd, t1.stk_nm,
+    t_buy.dt BUT_DT,
+    round(t_buy.c_prc. 1) BUY_PRC, round(t_buy.c_prc * 10, 1) BUY_AMT
+from stock t1
+    inner join history_dt t_buy
+        on (t_buy.stk_cd = t1.stk_cd)
+where t1.stk_nm in ('삼성전자','카카오','LG화학')
+and t_buy.dt = str_to_date('20190102','%Y%m%d')
+```
+
+```sql
+-- 매도 시점으 history_dt(t_sell)를 한 번 더 조인해 매도한 일자의 종가를 가져와 수익률을 구할 수 있다.
+
+select t1.stk_cd, t1.stk_nm
+    t_buy.dt BUY_DT, round(t_buy.c_prc, 1) BUY_PRC, round(t_buy.c_prc * 10, 1) BUY_AMT,
+    t_sell.dt SELL_DT, round(t_sell.c_prc, 1) SELL_PRC, round(t_sell.c_prc * 10, 1) SELL_AMT,
+
+    round((t_sell.c_prc - t_buy.c_prc) / t_buy.c_prc * 100, 2) 수익률,
+    ROUND((T_SELL.C_PRC * 10) - (T_BUY.C_PRC * 10),1) 수익금
+    -- 수익금, 이거 안되는 이유
+    -- sell_amt - buy_amt
+from stock t1
+    inner join history_dt t_buy
+        on t_buy.stk_cd = t1.stk_cd
+    inner join history_dt t_sell
+        on t_sell.stk_cd = t1.stk_cd
+where t1.stk_nm in ('삼성전자','카카오','LG화학')
+and t_buy_dt = str_to_date('20190102', '%Y%m%d')
+and t_sell_dt = str_to_date('20191227', '%Y%m%d')
+```
