@@ -1,0 +1,4 @@
+-- CREATE TABLE `cycle`.`trends` (
+--   `date` DATE NOT NULL,
+--   `diff` FLOAT NULL,
+--   PRIMARY KEY (`date`));
