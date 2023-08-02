@@ -1,0 +1,15 @@
+artifact_uri: file:///c:/Users/Suhyeon/Desktop/DataAnalysis/mlflow/mlruns/768637018679205769/5f4488a21acd41a8937a42fe49bfabc2/artifacts
+end_time: 1690968602185
+entry_point_name: ''
+experiment_id: '768637018679205769'
+lifecycle_stage: active
+run_id: 5f4488a21acd41a8937a42fe49bfabc2
+run_name: big-swan-870
+run_uuid: 5f4488a21acd41a8937a42fe49bfabc2
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1690968599974
+status: 3
+tags: []
+user_id: Suhyeon
