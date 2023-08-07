@@ -53,7 +53,17 @@ if __name__ == '__main__':
 
     mlflow.set_experiment('titanic')
     with mlflow.start_run() as run:
+        # Directory
+        train_dir = "train.csv"
+        test_dir = "test.csv"
 
+        # Flow
+        train, test = load_data(train_dir, test_dir)
+        train_x, train_y, test_x, test_y = pre_processing(train, test)
+        model = build_model(train_x, train_y)
+        score = evaluation(model, test_x, test_y)
+################################
+################################
         df = pd.read_csv('interest-window-rolling.csv')
         df.columns = ["date","trend", "records_count"]
         # dataframe 전처리 [인덱싱 >> float 변환]
@@ -82,5 +92,6 @@ if __name__ == '__main__':
         
         # 데이터 저장
         mlflow.log_artifact(train_dir)
+
         # 모델 저장 및 모델 저장 폴더명 저장
         mlflow.sklearn.log_model(model, "titanic_model")
