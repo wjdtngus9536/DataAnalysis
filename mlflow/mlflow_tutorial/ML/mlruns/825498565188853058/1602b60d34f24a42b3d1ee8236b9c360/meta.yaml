@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/Suhyeon/Desktop/mlflow_tutorial/ML/mlruns/825498565188853058/1602b60d34f24a42b3d1ee8236b9c360/artifacts
+end_time: 1690965206923
+entry_point_name: ''
+experiment_id: '825498565188853058'
+lifecycle_stage: active
+run_id: 1602b60d34f24a42b3d1ee8236b9c360
+run_name: redolent-mink-619
+run_uuid: 1602b60d34f24a42b3d1ee8236b9c360
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1690965204071
+status: 3
+tags: []
+user_id: Suhyeon

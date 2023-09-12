@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/Suhyeon/Desktop/mlflow_tutorial/ML/mlruns/825498565188853058/1e1ef0bb27a145eda70e10ee192fd375/artifacts
+end_time: 1690965936572
+entry_point_name: ''
+experiment_id: '825498565188853058'
+lifecycle_stage: active
+run_id: 1e1ef0bb27a145eda70e10ee192fd375
+run_name: titanic02
+run_uuid: 1e1ef0bb27a145eda70e10ee192fd375
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1690965932406
+status: 3
+tags: []
+user_id: Suhyeon
